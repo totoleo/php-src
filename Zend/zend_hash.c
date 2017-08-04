@@ -115,6 +115,7 @@ static uint32_t zend_always_inline zend_hash_check_size(uint32_t nSize)
 #elif defined(__GNUC__) || __has_builtin(__builtin_clz)
 	return 0x2 << (__builtin_clz(nSize - 1) ^ 0x1f);
 #else
+	/**/
 	nSize -= 1;
 	nSize |= (nSize >> 1);
 	nSize |= (nSize >> 2);
@@ -541,7 +542,7 @@ static zend_always_inline zval *_zend_hash_add_or_update_i(HashTable *ht, zend_s
 	if (UNEXPECTED(!(ht->u.flags & HASH_FLAG_INITIALIZED))) {
 		CHECK_INIT(ht, 0);
 		goto add_to_hash;
-	} else if (ht->u.flags & HASH_FLAG_PACKED) {
+	} else if (ht->u.flags & HASH_FLAG_PACKED) {/*判断数组是否是 packed ?*/
 		zend_hash_packed_to_hash(ht);
 	} else if ((flag & HASH_ADD_NEW) == 0) {
 		p = zend_hash_find_bucket(ht, key);
@@ -550,6 +551,7 @@ static zend_always_inline zval *_zend_hash_add_or_update_i(HashTable *ht, zend_s
 			zval *data;
 
 			if (flag & HASH_ADD) {
+				/*5.4 return FAILURE;*/
 				return NULL;
 			}
 			ZEND_ASSERT(&p->val != pData);
@@ -566,7 +568,7 @@ static zend_always_inline zval *_zend_hash_add_or_update_i(HashTable *ht, zend_s
 			return data;
 		}
 	}
-
+	/*5.4 这一步是在做完更新后*/
 	ZEND_HASH_IF_FULL_DO_RESIZE(ht);		/* If the Hash table is full, resize it */
 
 add_to_hash:
@@ -577,11 +579,13 @@ add_to_hash:
 		ht->nInternalPointer = idx;
 	}
 	zend_hash_iterators_update(ht, HT_INVALID_IDX, idx);
+	/*因为实际上 Bucket 已经被分配了，所以此处只是做一次*/
 	p = ht->arData + idx;
 	p->key = key;
 	if (!ZSTR_IS_INTERNED(key)) {
 		zend_string_addref(key);
 		ht->u.flags &= ~HASH_FLAG_STATIC_KEYS;
+		/*确保 key 的 hash 被计算*/
 		zend_string_hash_val(key);
 	}
 	p->h = h = ZSTR_H(key);
@@ -896,7 +900,7 @@ ZEND_API int ZEND_FASTCALL zend_hash_rehash(HashTable *ht)
 				Bucket *q = p;
 
 				if (EXPECTED(ht->u.v.nIteratorsCount == 0)) {
-					while (++i < ht->nNumUsed) {
+					while (++i < ht->nNumUsed) {//遍历所有有效的元素
 						p++;
 						if (EXPECTED(Z_TYPE_INFO(p->val) != IS_UNDEF)) {
 							ZVAL_COPY_VALUE(&q->val, &p->val);

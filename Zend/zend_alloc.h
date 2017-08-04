@@ -43,7 +43,7 @@
 #define ZEND_MM_ALIGNED_SIZE(size)	(((size) + ZEND_MM_ALIGNMENT - Z_L(1)) & ZEND_MM_ALIGNMENT_MASK)
 
 #define ZEND_MM_ALIGNED_SIZE_EX(size, alignment) \
-	(((size) + ((alignment) - Z_L(1))) & ~((alignment) - Z_L(1)))
+	(((size) + ((alignment) - Z_L(1))) & ~((alignment) - Z_L(1)))//确保分配8字节整数倍的内存，最少8字节
 
 typedef struct _zend_leak_info {
 	void *addr;
@@ -64,7 +64,7 @@ typedef struct _zend_mm_debug_info {
 } zend_mm_debug_info;
 
 # define ZEND_MM_OVERHEAD ZEND_MM_ALIGNED_SIZE(sizeof(zend_mm_debug_info))
-#else 
+#else
 # define ZEND_MM_OVERHEAD 0
 #endif
 
@@ -376,7 +376,7 @@ static void apc_init_heap(void)
 
 	// Preallocate properly aligned SHM chunks (64MB)
 	tmp_data.mem = shm_memalign(ZEND_MM_CHUNK_SIZE, ZEND_MM_CHUNK_SIZE * 32);
-	
+
 	// Initialize temporary storage data
 	tmp_data.free_pages = 0;
 
@@ -389,7 +389,7 @@ static void apc_init_heap(void)
 	zend_hash_init(apc_ht, 64, NULL, ZVAL_PTR_DTOR, 0);
 	zend_mm_set_heap(old_heap);
 }
- 
+
 */
 
 END_EXTERN_C()

@@ -17,6 +17,7 @@
 *.plg
 *swp
 *.patch
+.tags*
 *.tgz
 *.tar.gz
 *.tar.bz2

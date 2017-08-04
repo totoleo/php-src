@@ -162,7 +162,7 @@ struct _zend_string {
 	zend_refcounted_h gc;
 	zend_ulong        h;                /* hash value */
 	size_t            len;
-	char              val[1];
+	char              val[1];//这里是一个 hack，定义的一个一个元素的数组，之后分配时会直接分配这个内存结构以及字符串。
 };
 
 typedef struct _Bucket {
@@ -215,9 +215,11 @@ struct _zend_array {
 #define HT_MIN_MASK ((uint32_t) -2)
 #define HT_MIN_SIZE 8
 
+/*HT_MAX_SIZE 是指 php 数组扩容前的最大索引值*/
 #if SIZEOF_SIZE_T == 4
 # define HT_MAX_SIZE 0x04000000 /* small enough to avoid overflow checks */
 # define HT_HASH_TO_BUCKET_EX(data, idx) \
+  /*首先将Bucket array 认为是一个字节数组，然后 idx 是实际的字节偏移量，这样就可以找到一个 bucket 的首地址*/
 	((Bucket*)((char*)(data) + (idx)))
 # define HT_IDX_TO_HASH(idx) \
 	((idx) * sizeof(Bucket))
